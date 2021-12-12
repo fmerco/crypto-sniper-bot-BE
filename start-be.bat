@@ -1,0 +1,1 @@
+cd be && npm install && node bot.js
