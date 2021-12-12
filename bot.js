@@ -6,6 +6,7 @@ const io = require("socket.io")(http, {
   },
 });
 
+const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const ethers = require("ethers");
@@ -16,12 +17,12 @@ const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 const expressLogger = expressPino({ logger });
 
 const port = 3000;
-
+ 
 app.use(cors());
 app.use(expressLogger);
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+ 
 const ActiveFactoryMap = new Map();
 
 /* SOCKET.IO CONNECTION */

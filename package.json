@@ -9,9 +9,9 @@
   },
   "dependencies": {
     "@types/socket.io": "^3.0.2",
-    "body-parser": "latest",
+    "body-parser": "1.19.1",
     "chalk": "^4.1.1",
-    "cors": "latest",
+    "cors": "2.8.5",
     "dotenv": "^10.0.0",
     "ethers": "^5.5.2",
     "express": "^4.17.1",
