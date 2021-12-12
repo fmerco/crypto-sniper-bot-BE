@@ -6,7 +6,6 @@ const io = require("socket.io")(http, {
   },
 });
 
-const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const ethers = require("ethers");
@@ -20,8 +19,8 @@ const port = 3000;
 
 app.use(cors());
 app.use(expressLogger);
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 const ActiveFactoryMap = new Map();
 
