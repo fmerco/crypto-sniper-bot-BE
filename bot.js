@@ -62,16 +62,6 @@ app.post("/pair-created-listner", (req, res) => {
 
   io.to(body.socketId).emit("logs", "BOT STARTED");
 
-  logger.info("PRIVATE KEY: " + body.privateKey);
-  logger.info("AMOUNT TO BUY: " + body.amountToBuy);
-  logger.info("AMOUNT OUT MIN: " + body.amountOutMin);
-  logger.info("RECIPIENT: " + body.recipient);
-  logger.info("GAS LIMIT: " + body.gasLimit);
-  logger.info("GAS PRICE: " + body.gasPrice);
-  logger.info("Token To Buy: " + body.tokenToBuy);
-  logger.info("DECIMALS: " + body.decimals);
-  logger.info("RPC: " + body.rpc);
-
   const provider =
     body.rpc.indexOf("wss") >= 0
       ? new ethers.providers.WebSocketProvider(body.rpc)
@@ -100,15 +90,6 @@ app.post("/pair-created-listner", (req, res) => {
       pairAddress.toUpperCase(),
       body.tokenToBuy.toUpperCase(),
     ];
-
-    logger.info("");
-    logger.info("::::::::::::::::::::::::::::::::::::::::::::::::");
-    logger.info("DATE: " + new Date());
-    logger.info("TOKEN0: " + (token0 || ""));
-    logger.info("TOKEN1 : " + (token1 || ""));
-    logger.info("PAIR ADDRESS: " + (pairAddress || ""));
-    logger.info("::::::::::::::::::::::::::::::::::::::::::::::::");
-    logger.info("");
 
     io.to(body.socketId).emit(
       "logs",
@@ -216,19 +197,7 @@ async function swapExactETHForTokens(
   gasPrice,
   decimals
 ) {
-  logger.info("        ");
-  logger.info(":::::::::::::::::::::::::::::::::::");
-  logger.info("swapExactETHForTokens");
-  logger.info("amountToBuy: " + amountToBuy);
-  logger.info("amountOutMin: " + amountOutMin * 10 ** decimals);
-  logger.info("tokenIn, tokenOut: " + tokenIn + " - " + tokenOut);
-  logger.info("recipient: " + recipient);
-  logger.info("gasLimit: " + gasLimit);
-  logger.info("gasPrice: " + gasPrice);
-  logger.info("decimals: " + decimals);
 
-  logger.info(":::::::::::::::::::::::::::::::::::");
-  logger.info("        ");
   const amountIn = ethers.utils.parseUnits(amountToBuy, "ether");
   io.to(body.socketId).emit("logs", `Token sniping start ... `);
 
@@ -276,18 +245,6 @@ async function swapExactTokensForTokens(
   gasPrice,
   decimals
 ) {
-  logger.info("        ");
-  logger.info(":::::::::::::::::::::::::::::::::::");
-  logger.info("swapExactTokensForTokens");
-  logger.info("amountToBuy: " + amountToBuy);
-  logger.info("amountOutMin: " + amountOutMin * 10 ** decimals);
-  logger.info("tokenIn, tokenOut: " + tokenIn + " - " + tokenOut);
-  logger.info("recipient: " + recipient);
-  logger.info("gasLimit: " + gasLimit);
-  logger.info("gasPrice: " + gasPrice);
-  logger.info("swapExactTokensForTokens");
-  logger.info(":::::::::::::::::::::::::::::::::::");
-  logger.info("        ");
   const amountIn = amountToBuy * 600 * 10 ** 18; // calcolare BUSD oppure no?
   const tx = await router.swapExactTokensForTokens(
     `${amountIn}`,
