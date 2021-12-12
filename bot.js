@@ -309,4 +309,5 @@ async function swapExactTokensForTokens(
 }
 
 /* START SERVER */
-http.listen(port, () => console.log(`SniperBot listening on port ${port}!`));
+http.listen(process.env.PORT || port, () => console.log(`SniperBot listening on port ${port}!`));
+ 
