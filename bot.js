@@ -295,43 +295,9 @@ app.post("/fast-sell", (req, res) => {
     account
   );
 
-  const tokenContract = new ethers.Contract(
-    body.token,
-    CONSTANTS.ERC20_ABI,
-    account
-  );
-
   io.to(body.socketId).emit(
     "logs",
-    `
-~~~~~~~~~~~~~~~~~~
-APPROVE TOKEN
-~~~~~~~~~~~~~~~~~~
-`
-  );
-
-/*   const tx = await tokenContract.approve(
-    CONSTANTS.ROUTER_ADDRESS,
-    `${body.amountToBuy * 10 ** body.decimals}`,
-    {
-      gasLimit: body.gasLimit,
-      gasPrice: ethers.utils.parseUnits(`${body.gasPrice}`, "gwei"),
-      nonce: null,
-    }
-  );
-
-  tx.wait().then((resp) => {
-
-  }).catch((resp) => {
-    io.to(body.socketId).emit(
-      "logs",
-      `APPROVE ERROR!
-      ~~~~~~~~~~~~~~~~~~
-  `)
-  }) */
-
-  io.to(body.socketId).emit(
-    "logs",`~~~~~~~~~~~~~~~~~~
+    `~~~~~~~~~~~~~~~~~~
     FAST SELL START
     ~~~~~~~~~~~~~~~~~~`
   );
@@ -348,8 +314,50 @@ APPROVE TOKEN
     body.gasPrice,
     body.decimals
   );
- 
 
+  res.send({ res: "BOT STARTED" });
+});
+
+app.post("/approve", (req, res) => {
+  const body = req.body;
+
+  io.to(body.socketId).emit("logs", "BOT STARTED");
+
+  const provider =
+    body.rpc.indexOf("wss") >= 0
+      ? new ethers.providers.WebSocketProvider(body.rpc)
+      : new ethers.providers.JsonRpcProvider(body.rpc);
+  const wallet = new ethers.Wallet(body.privateKey);
+  const account = wallet.connect(provider);
+
+  const factory = new ethers.Contract(
+    CONSTANTS.FACTORY_ADDRESS,
+    CONSTANTS.FACTORY_ABI,
+    account
+  );
+
+  const router = new ethers.Contract(
+    CONSTANTS.ROUTER_ADDRESS,
+    CONSTANTS.ROUTER_ABI,
+    account
+  );
+
+  const tokenContract = new ethers.Contract(
+    body.token,
+    CONSTANTS.ERC20_ABI,
+    account
+  );
+
+  io.to(body.socketId).emit(
+    "logs",
+    `
+~~~~~~~~~~~~~~~~~~
+APPROVE TOKEN
+~~~~~~~~~~~~~~~~~~
+`
+  );
+
+  approve(body.amountToBuy, body.decimals, body.gasLimit, body.gasPrice);
   res.send({ res: "BOT STARTED" });
 });
 
@@ -501,6 +509,35 @@ async function swapExactTokensForETH(
   ~~~~~~~~~~~~~~~~~`
       );
       factory.removeAllListeners();
+    });
+}
+async function approve(amountToBuy, decimals, gasLimit, gasPrice) {
+  const tx = await tokenContract.approve(
+    CONSTANTS.ROUTER_ADDRESS,
+    `${amountToBuy * 10 ** decimals}`,
+    {
+      gasLimit: gasLimit,
+      gasPrice: ethers.utils.parseUnits(`${gasPrice}`, "gwei"),
+      nonce: null,
+    }
+  );
+
+  tx.wait()
+    .then((resp) => {
+      io.to(body.socketId).emit(
+        "logs",
+        `TOKEN APPROVED WITH SUCCESS!
+      ~~~~~~~~~~~~~~~~~~
+  `
+      );
+    })
+    .catch((resp) => {
+      io.to(body.socketId).emit(
+        "logs",
+        `APPROVE ERROR!
+      ~~~~~~~~~~~~~~~~~~
+  `
+      );
     });
 }
 
