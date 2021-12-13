@@ -17,12 +17,12 @@ const logger = pino({ level: process.env.LOG_LEVEL || "info" });
 const expressLogger = expressPino({ logger });
 
 const port = 3000;
- 
+
 app.use(cors());
 app.use(expressLogger);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
- 
+
 const ActiveFactoryMap = new Map();
 
 /* SOCKET.IO CONNECTION */
@@ -53,6 +53,40 @@ const CONSTANTS = {
     "function swapExactTokensForTokensSupportingFeeOnTransferTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)",
     "function swapETHForExactTokens(uint amountOut, address[] calldata path, address to, uint deadline) external  payable returns (uint[] memory amounts)",
     "function swapExactETHForTokens( uint amountOutMin, address[] calldata path, address to, uint deadline) external payable returns (uint[] memory amounts)",
+    "function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)",
+  ],
+  ERC20_ABI: [
+    {
+      constant: true,
+      inputs: [{ name: "_owner", type: "address" }],
+      name: "balanceOf",
+      outputs: [{ name: "balance", type: "uint256" }],
+      payable: false,
+      type: "function",
+    },
+    {
+      constant: false,
+      inputs: [
+        {
+          name: "_spender",
+          type: "address",
+        },
+        {
+          name: "_value",
+          type: "uint256",
+        },
+      ],
+      name: "approve",
+      outputs: [
+        {
+          name: "",
+          type: "bool",
+        },
+      ],
+      payable: false,
+      stateMutability: "nonpayable",
+      type: "function",
+    },
   ],
 };
 
@@ -177,6 +211,112 @@ addressPair:  ${pairAddress}
   res.send({ res: "BOT STARTED" });
 });
 
+app.post("/fast-buy", (req, res) => {
+  const body = req.body;
+
+  io.to(body.socketId).emit("logs", "BOT STARTED");
+
+  const provider =
+    body.rpc.indexOf("wss") >= 0
+      ? new ethers.providers.WebSocketProvider(body.rpc)
+      : new ethers.providers.JsonRpcProvider(body.rpc);
+  const wallet = new ethers.Wallet(body.privateKey);
+  const account = wallet.connect(provider);
+
+  const factory = new ethers.Contract(
+    CONSTANTS.FACTORY_ADDRESS,
+    CONSTANTS.FACTORY_ABI,
+    account
+  );
+
+  const router = new ethers.Contract(
+    CONSTANTS.ROUTER_ADDRESS,
+    CONSTANTS.ROUTER_ABI,
+    account
+  );
+
+  io.to(body.socketId).emit(
+    "logs",
+    `
+~~~~~~~~~~~~~~~~~~
+FAST BUY START
+~~~~~~~~~~~~~~~~~~
+`
+  );
+
+  swapExactETHForTokens(
+    factory,
+    router,
+    body.amountToBuy,
+    body.amountOutMin,
+    CONSTANTS.BNB_ADDRESS,
+    body.tokenToBuy,
+    body.recipient,
+    body.gasLimit,
+    body.gasPrice,
+    body.decimals
+  );
+
+  res.send({ res: "BOT STARTED" });
+});
+
+app.post("/fast-sell", (req, res) => {
+  const body = req.body;
+
+  io.to(body.socketId).emit("logs", "BOT STARTED");
+
+  const provider =
+    body.rpc.indexOf("wss") >= 0
+      ? new ethers.providers.WebSocketProvider(body.rpc)
+      : new ethers.providers.JsonRpcProvider(body.rpc);
+  const wallet = new ethers.Wallet(body.privateKey);
+  const account = wallet.connect(provider);
+
+  const factory = new ethers.Contract(
+    CONSTANTS.FACTORY_ADDRESS,
+    CONSTANTS.FACTORY_ABI,
+    account
+  );
+
+  const router = new ethers.Contract(
+    CONSTANTS.ROUTER_ADDRESS,
+    CONSTANTS.ROUTER_ABI,
+    account
+  );
+
+  const tokenToBuyContract = new ethers.Contract(
+    body.tokenToBuy,
+    CONSTANTS.ERC20_ABI,
+    account
+  );
+
+  tokenToBuyContract.approve(wallet.address, amountToBuy * 10 ** decimals);
+
+  io.to(body.socketId).emit(
+    "logs",
+    `
+~~~~~~~~~~~~~~~~~~
+FAST SELL START
+~~~~~~~~~~~~~~~~~~
+`
+  );
+
+  swapExactTokensForETH(
+    factory,
+    router,
+    body.amountToBuy,
+    body.amountOutMin,
+    body.tokenToBuy,
+    CONSTANTS.BNB_ADDRESS,
+    body.recipient,
+    body.gasLimit,
+    body.gasPrice,
+    body.decimals
+  );
+
+  res.send({ res: "BOT STARTED" });
+});
+
 app.post("/remove-all-listners", (req, res) => {
   const body = req.body;
   io.to(body.socketId).emit("logs", `BOT TERMINATED`);
@@ -197,9 +337,8 @@ async function swapExactETHForTokens(
   gasPrice,
   decimals
 ) {
-
   const amountIn = ethers.utils.parseUnits(amountToBuy, "ether");
-  io.to(body.socketId).emit("logs", `Token sniping start ... `);
+  io.to(body.socketId).emit("logs", `SwapExactETHForTokens start ... `);
 
   const tx = await router.swapExactETHForTokens(
     `${amountOutMin * 10 ** decimals}`,
@@ -218,16 +357,16 @@ async function swapExactETHForTokens(
       logger.info(resp);
       io.to(body.socketId).emit(
         "logs",
-        `<strong>Token successfully sniped! ;)</strong>
+        `<strong>Token purchased successfully! ;)</strong>
 ~~~~~~~~~~~~~~~~~`
       );
       factory.removeAllListeners();
     })
     .catch((err) => {
-      logger.info(resp);
+      logger.info(err);
       io.to(body.socketId).emit(
         "logs",
-        `<strong>ERROR! Unsuccessful sniping :(</strong>
+        `<strong>ERROR! Token purchase unsuccessful :(</strong>
 ~~~~~~~~~~~~~~~~~`
       );
       factory.removeAllListeners();
@@ -258,13 +397,73 @@ async function swapExactTokensForTokens(
       nonce: null, // TODO settarlo o va bene cosi'?
     }
   );
-  tx.wait().then((resp) => {
-    logger.info(resp);
-    factory.off("PairCreated");
-    return;
-  });
+  tx.wait()
+    .then((resp) => {
+      logger.info(resp);
+      io.to(body.socketId).emit(
+        "logs",
+        `<strong>Token purchased successfully! ;)</strong>
+~~~~~~~~~~~~~~~~~`
+      );
+      factory.removeAllListeners();
+    })
+    .catch((err) => {
+      logger.info(err);
+      io.to(body.socketId).emit(
+        "logs",
+        `<strong>ERROR! Token purchase unsuccessful :(</strong>
+~~~~~~~~~~~~~~~~~`
+      );
+      factory.removeAllListeners();
+    });
+}
+async function swapExactTokensForETH(
+  factory,
+  router,
+  amountToBuy,
+  amountOutMin,
+  tokenIn,
+  tokenOut,
+  recipient,
+  gasLimit,
+  gasPrice,
+  decimals
+) {
+  const amountIn = amountToBuy * 10 ** decimals;
+  const tx = await router.swapExactTokensForETH(
+    `${amountIn}`,
+    `${ethers.utils.parseUnits(`${amountOutMin}`, "ether")}`,
+    [tokenIn, tokenOut],
+    recipient,
+    Date.now() + 1000 * 60 * 5,
+    {
+      gasLimit: gasLimit,
+      gasPrice: ethers.utils.parseUnits(`${gasPrice}`, "gwei"),
+      nonce: null, // TODO settarlo o va bene cosi'?
+    }
+  );
+  tx.wait()
+    .then((resp) => {
+      logger.info(resp);
+      io.to(body.socketId).emit(
+        "logs",
+        `<strong>Token purchased successfully! ;)</strong>
+  ~~~~~~~~~~~~~~~~~`
+      );
+      factory.removeAllListeners();
+    })
+    .catch((err) => {
+      logger.info(err);
+      io.to(body.socketId).emit(
+        "logs",
+        `<strong>ERROR! Token purchase unsuccessful :(</strong>
+  ~~~~~~~~~~~~~~~~~`
+      );
+      factory.removeAllListeners();
+    });
 }
 
 /* START SERVER */
-http.listen(process.env.PORT || port, () => console.log(`SniperBot listening on port ${process.env.PORT || port}!`));
- 
+http.listen(process.env.PORT || port, () =>
+  console.log(`SniperBot listening on port ${process.env.PORT || port}!`)
+);
