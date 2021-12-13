@@ -301,7 +301,7 @@ app.post("/fast-sell", (req, res) => {
     account
   );
 
-  tokenContract.approve(wallet.address, amountToBuy * 10 ** decimals);
+  tokenContract.approve(wallet.address, body.amountToBuy * 10 ** decimals);
 
   io.to(body.socketId).emit(
     "logs",
