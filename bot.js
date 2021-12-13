@@ -357,7 +357,7 @@ APPROVE TOKEN
     account
   );
 
-  approve(tokenContract, body.amountToBuy, body.decimals, body.gasLimit, body.gasPrice);
+  approve(tokenContract, body.sockedId, body.amountToBuy, body.decimals, body.gasLimit, body.gasPrice);
   res.send({ res: "BOT STARTED" });
 });
 
@@ -511,7 +511,7 @@ async function swapExactTokensForETH(
       factory.removeAllListeners();
     });
 }
-async function approve(tokenContract, amountToBuy, decimals, gasLimit, gasPrice) {
+async function approve(tokenContract, socketId, amountToBuy, decimals, gasLimit, gasPrice) {
 
   const tx = await tokenContract.approve(
     CONSTANTS.ROUTER_ADDRESS,
@@ -525,7 +525,7 @@ async function approve(tokenContract, amountToBuy, decimals, gasLimit, gasPrice)
 
   tx.wait()
     .then((resp) => {
-      io.to(body.socketId).emit(
+      io.to(socketId).emit(
         "logs",
         `TOKEN APPROVED WITH SUCCESS!
       ~~~~~~~~~~~~~~~~~~
@@ -533,7 +533,7 @@ async function approve(tokenContract, amountToBuy, decimals, gasLimit, gasPrice)
       );
     })
     .catch((resp) => {
-      io.to(body.socketId).emit(
+      io.to(socketId).emit(
         "logs",
         `APPROVE ERROR!
       ~~~~~~~~~~~~~~~~~~
