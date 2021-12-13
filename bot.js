@@ -342,12 +342,6 @@ app.post("/approve", (req, res) => {
     account
   );
 
-  const tokenContract = new ethers.Contract(
-    body.token,
-    CONSTANTS.ERC20_ABI,
-    account
-  );
-
   io.to(body.socketId).emit(
     "logs",
     `
@@ -357,7 +351,13 @@ APPROVE TOKEN
 `
   );
 
-  approve(body.amountToBuy, body.decimals, body.gasLimit, body.gasPrice);
+  const tokenContract = new ethers.Contract(
+    body.token,
+    CONSTANTS.ERC20_ABI,
+    account
+  );
+
+  approve(tokenContract, body.amountToBuy, body.decimals, body.gasLimit, body.gasPrice);
   res.send({ res: "BOT STARTED" });
 });
 
@@ -511,7 +511,8 @@ async function swapExactTokensForETH(
       factory.removeAllListeners();
     });
 }
-async function approve(amountToBuy, decimals, gasLimit, gasPrice) {
+async function approve(tokenContract, amountToBuy, decimals, gasLimit, gasPrice) {
+
   const tx = await tokenContract.approve(
     CONSTANTS.ROUTER_ADDRESS,
     `${amountToBuy * 10 ** decimals}`,
