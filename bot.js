@@ -118,11 +118,11 @@ app.post("/pair-created-listner", (req, res) => {
   ActiveFactoryMap.set(body.socketId, factory);
 
   factory.on("PairCreated", async (token0, token1, pairAddress) => {
-    [token0, token1, pairAddress, body.tokenToBuy] = [
+    [token0, token1, pairAddress, body.token] = [
       token0.toUpperCase(),
       token1.toUpperCase(),
       pairAddress.toUpperCase(),
-      body.tokenToBuy.toUpperCase(),
+      body.token.toUpperCase(),
     ];
 
     io.to(body.socketId).emit(
@@ -137,7 +137,7 @@ addressPair:  ${pairAddress}
 `
     );
 
-    if (token0 === body.tokenToBuy || token1 === body.tokenToBuy) {
+    if (token0 === body.token || token1 === body.token) {
       logger.info("");
       logger.info("::::::::::::::::::::::::::::::::::::::::::::::::");
       logger.info("FOUND!");
@@ -255,7 +255,7 @@ FAST BUY START
     body.amountToBuy,
     body.amountOutMin,
     CONSTANTS.BNB_ADDRESS,
-    body.tokenToBuy,
+    body.token,
     body.recipient,
     body.gasLimit,
     body.gasPrice,
@@ -289,13 +289,13 @@ app.post("/fast-sell", (req, res) => {
     account
   );
 
-  const tokenToBuyContract = new ethers.Contract(
-    body.tokenToBuy,
+  const tokenContract = new ethers.Contract(
+    body.token,
     CONSTANTS.ERC20_ABI,
     account
   );
 
-  tokenToBuyContract.approve(wallet.address, amountToBuy * 10 ** decimals);
+  tokenContract.approve(wallet.address, amountToBuy * 10 ** decimals);
 
   io.to(body.socketId).emit(
     "logs",
@@ -312,7 +312,7 @@ FAST SELL START
     router,
     body.amountToBuy,
     body.amountOutMin,
-    body.tokenToBuy,
+    body.token,
     CONSTANTS.BNB_ADDRESS,
     body.recipient,
     body.gasLimit,
