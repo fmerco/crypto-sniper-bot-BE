@@ -28,15 +28,17 @@ const usersOnline = 0;
 
 /* SOCKET.IO CONNECTION */
 io.on("connection", (socket) => {
+  usersOnline+=1
   socket.emit("socketId", socket.id);
-  socket.emit("usersOnline", ++usersOnline);
+  socket.emit("usersOnline", usersOnline);
 
   console.log("connected", socket.id);
 
   socket.on("disconnect", (data) => {
     console.log("disconnected", socket.id);
     ActiveFactoryMap.get(socket.id)?.removeAllListeners();
-    socket.emit("usersOnline", --usersOnline);
+    usersOnline-=1
+    socket.emit("usersOnline", usersOnline);
   });
 });
 
