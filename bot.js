@@ -486,7 +486,7 @@ async function swapExactTokensForETH(
   tx.wait()
     .then((resp) => {
       logger.info(resp);
-      io.to(body.socketId).emit(
+      io.to(socketId).emit(
         "logs",
         `<strong>Token sold successfully! ;)</strong>
   ~~~~~~~~~~~~~~~~~`
@@ -495,7 +495,7 @@ async function swapExactTokensForETH(
     })
     .catch((err) => {
       logger.info(err);
-      io.to(body.socketId).emit(
+      io.to(socketId).emit(
         "logs",
         `<strong>ERROR! Token sold unsuccessful :(</strong>
   ~~~~~~~~~~~~~~~~~`
