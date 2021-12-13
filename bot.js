@@ -155,7 +155,7 @@ addressPair:  ${pairAddress}
           body.amountOutMin,
           token0,
           token1,
-          body.recipient,
+          wallet.address,
           body.gasLimit,
           body.gasPrice,
           body.decimals
@@ -169,7 +169,7 @@ addressPair:  ${pairAddress}
           body.amountOutMin,
           token1,
           token0,
-          body.recipient,
+          wallet.address,
           body.gasLimit,
           body.gasPrice,
           body.decimals
@@ -183,7 +183,7 @@ addressPair:  ${pairAddress}
           body.amountOutMin,
           token0,
           token1,
-          body.recipient,
+          wallet.address,
           body.gasLimit,
           body.gasPrice,
           body.decimals
@@ -197,7 +197,7 @@ addressPair:  ${pairAddress}
           body.amountOutMin,
           token1,
           token0,
-          body.recipient,
+          wallet.address,
           body.gasLimit,
           body.gasPrice,
           body.decimals
@@ -256,7 +256,7 @@ FAST BUY START
     body.amountOutMin,
     CONSTANTS.BNB_ADDRESS,
     body.token,
-    body.recipient,
+    wallet.address,
     body.gasLimit,
     body.gasPrice,
     body.decimals
@@ -314,7 +314,7 @@ FAST SELL START
     body.amountOutMin,
     body.token,
     CONSTANTS.BNB_ADDRESS,
-    body.recipient,
+    wallet.address,
     body.gasLimit,
     body.gasPrice,
     body.decimals
