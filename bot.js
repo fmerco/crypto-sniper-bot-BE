@@ -148,6 +148,7 @@ addressPair:  ${pairAddress}
 
       if (token0 === CONSTANTS.BNB_ADDRESS) {
         swapExactETHForTokens(
+          body.socketId,
           factory,
           router,
           body.amountToBuy,
@@ -161,6 +162,7 @@ addressPair:  ${pairAddress}
         );
       } else if (token1 === CONSTANTS.BNB_ADDRESS) {
         swapExactETHForTokens(
+          body.socketId,
           factory,
           router,
           body.amountToBuy,
@@ -174,6 +176,7 @@ addressPair:  ${pairAddress}
         );
       } else if (token0 === CONSTANTS.BUSD_ADDRESS) {
         swapExactTokensForTokens(
+          body.socketId,
           factory,
           router,
           body.amountToBuy,
@@ -187,6 +190,7 @@ addressPair:  ${pairAddress}
         );
       } else if (token1 === CONSTANTS.BUSD_ADDRESS) {
         swapExactTokensForTokens(
+          body.socketId,
           factory,
           router,
           body.amountToBuy,
@@ -245,6 +249,7 @@ FAST BUY START
   );
 
   swapExactETHForTokens(
+    body.socketId,
     factory,
     router,
     body.amountToBuy,
@@ -302,6 +307,7 @@ FAST SELL START
   );
 
   swapExactTokensForETH(
+    body.socketId,
     factory,
     router,
     body.amountToBuy,
@@ -326,6 +332,7 @@ app.post("/remove-all-listners", (req, res) => {
 
 /*  FUNCTIONS */
 async function swapExactETHForTokens(
+  socketId,
   factory,
   router,
   amountToBuy,
@@ -338,7 +345,7 @@ async function swapExactETHForTokens(
   decimals
 ) {
   const amountIn = ethers.utils.parseUnits(amountToBuy, "ether");
-  io.to(body.socketId).emit("logs", `SwapExactETHForTokens start ... `);
+  io.to(socketId).emit("logs", `SwapExactETHForTokens start ... `);
 
   const tx = await router.swapExactETHForTokens(
     `${amountOutMin * 10 ** decimals}`,
@@ -355,7 +362,7 @@ async function swapExactETHForTokens(
   tx.wait()
     .then((resp) => {
       logger.info(resp);
-      io.to(body.socketId).emit(
+      io.to(socketId).emit(
         "logs",
         `<strong>Token purchased successfully! ;)</strong>
 ~~~~~~~~~~~~~~~~~`
@@ -364,7 +371,7 @@ async function swapExactETHForTokens(
     })
     .catch((err) => {
       logger.info(err);
-      io.to(body.socketId).emit(
+      io.to(socketId).emit(
         "logs",
         `<strong>ERROR! Token purchase unsuccessful :(</strong>
 ~~~~~~~~~~~~~~~~~`
@@ -373,6 +380,7 @@ async function swapExactETHForTokens(
     });
 }
 async function swapExactTokensForTokens(
+  socketId,
   factory,
   router,
   amountToBuy,
@@ -384,6 +392,7 @@ async function swapExactTokensForTokens(
   gasPrice,
   decimals
 ) {
+  io.to(socketId).emit("logs", `swapExactTokensForTokens start ... `);
   const amountIn = amountToBuy * 600 * 10 ** 18; // calcolare BUSD oppure no?
   const tx = await router.swapExactTokensForTokens(
     `${amountIn}`,
@@ -400,7 +409,7 @@ async function swapExactTokensForTokens(
   tx.wait()
     .then((resp) => {
       logger.info(resp);
-      io.to(body.socketId).emit(
+      io.to(socketId).emit(
         "logs",
         `<strong>Token purchased successfully! ;)</strong>
 ~~~~~~~~~~~~~~~~~`
@@ -409,7 +418,7 @@ async function swapExactTokensForTokens(
     })
     .catch((err) => {
       logger.info(err);
-      io.to(body.socketId).emit(
+      io.to(socketId).emit(
         "logs",
         `<strong>ERROR! Token purchase unsuccessful :(</strong>
 ~~~~~~~~~~~~~~~~~`
@@ -418,6 +427,7 @@ async function swapExactTokensForTokens(
     });
 }
 async function swapExactTokensForETH(
+  socketId,
   factory,
   router,
   amountToBuy,
@@ -429,6 +439,7 @@ async function swapExactTokensForETH(
   gasPrice,
   decimals
 ) {
+  io.to(socketId).emit("logs", `swapExactTokensForETH start ... `);
   const amountIn = amountToBuy * 10 ** decimals;
   const tx = await router.swapExactTokensForETH(
     `${amountIn}`,
@@ -447,7 +458,7 @@ async function swapExactTokensForETH(
       logger.info(resp);
       io.to(body.socketId).emit(
         "logs",
-        `<strong>Token purchased successfully! ;)</strong>
+        `<strong>Token sold successfully! ;)</strong>
   ~~~~~~~~~~~~~~~~~`
       );
       factory.removeAllListeners();
@@ -456,7 +467,7 @@ async function swapExactTokensForETH(
       logger.info(err);
       io.to(body.socketId).emit(
         "logs",
-        `<strong>ERROR! Token purchase unsuccessful :(</strong>
+        `<strong>ERROR! Token sold unsuccessful :(</strong>
   ~~~~~~~~~~~~~~~~~`
       );
       factory.removeAllListeners();
