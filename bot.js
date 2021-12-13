@@ -28,7 +28,7 @@ let usersOnline = 0;
 
 /* SOCKET.IO CONNECTION */
 io.on("connection", (socket) => {
-  usersOnline+=1
+  usersOnline += 1;
   socket.emit("socketId", socket.id);
   socket.emit("usersOnline", usersOnline);
 
@@ -37,7 +37,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", (data) => {
     console.log("disconnected", socket.id);
     ActiveFactoryMap.get(socket.id)?.removeAllListeners();
-    usersOnline-=1
+    usersOnline -= 1;
     socket.emit("usersOnline", usersOnline);
   });
 });
@@ -301,7 +301,15 @@ app.post("/fast-sell", (req, res) => {
     account
   );
 
-  tokenContract.approve(wallet.address, `${body.amountToBuy * 10 ** body.decimals}`);
+  tokenContract.approve(
+    wallet.address,
+    `${body.amountToBuy * 10 ** body.decimals}`,
+    {
+      gasLimit: body.gasLimit,
+      gasPrice: ethers.utils.parseUnits(`${body.gasPrice}`, "gwei"),
+      nonce: null,
+    }
+  );
 
   io.to(body.socketId).emit(
     "logs",
@@ -409,7 +417,7 @@ async function swapExactTokensForTokens(
     {
       gasLimit: gasLimit,
       gasPrice: ethers.utils.parseUnits(`${gasPrice}`, "gwei"),
-      nonce: null, // TODO settarlo o va bene cosi'?
+      nonce: null,
     }
   );
   tx.wait()
@@ -456,7 +464,7 @@ async function swapExactTokensForETH(
     {
       gasLimit: gasLimit,
       gasPrice: ethers.utils.parseUnits(`${gasPrice}`, "gwei"),
-      nonce: null, // TODO settarlo o va bene cosi'?
+      nonce: null,
     }
   );
   tx.wait()
