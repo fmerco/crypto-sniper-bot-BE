@@ -310,7 +310,7 @@ APPROVE TOKEN
 `
   );
 
-  const tx = await tokenContract.approve(
+/*   const tx = await tokenContract.approve(
     CONSTANTS.ROUTER_ADDRESS,
     `${body.amountToBuy * 10 ** body.decimals}`,
     {
@@ -321,31 +321,33 @@ APPROVE TOKEN
   );
 
   tx.wait().then((resp) => {
-    io.to(body.socketId).emit(
-      "logs",`~~~~~~~~~~~~~~~~~~
-      FAST SELL START
-      ~~~~~~~~~~~~~~~~~~`
-    );
-    swapExactTokensForETH(
-      body.socketId,
-      factory,
-      router,
-      body.amountToBuy,
-      body.amountOutMin,
-      body.token,
-      CONSTANTS.BNB_ADDRESS,
-      wallet.address,
-      body.gasLimit,
-      body.gasPrice,
-      body.decimals
-    );
+
   }).catch((resp) => {
     io.to(body.socketId).emit(
       "logs",
       `APPROVE ERROR!
       ~~~~~~~~~~~~~~~~~~
   `)
-  })
+  }) */
+
+  io.to(body.socketId).emit(
+    "logs",`~~~~~~~~~~~~~~~~~~
+    FAST SELL START
+    ~~~~~~~~~~~~~~~~~~`
+  );
+  swapExactTokensForETH(
+    body.socketId,
+    factory,
+    router,
+    body.amountToBuy,
+    body.amountOutMin,
+    body.token,
+    CONSTANTS.BNB_ADDRESS,
+    wallet.address,
+    body.gasLimit,
+    body.gasPrice,
+    body.decimals
+  );
  
 
   res.send({ res: "BOT STARTED" });
