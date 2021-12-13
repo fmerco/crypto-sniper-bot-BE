@@ -302,7 +302,7 @@ app.post("/fast-sell", (req, res) => {
   );
 
   tokenContract.approve(
-    wallet.address,
+    CONSTANTS.ROUTER_ADDRESS,
     `${body.amountToBuy * 10 ** body.decimals}`,
     {
       gasLimit: body.gasLimit,
