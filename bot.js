@@ -24,7 +24,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 const ActiveFactoryMap = new Map();
-const usersOnline = 0;
+let usersOnline = 0;
 
 /* SOCKET.IO CONNECTION */
 io.on("connection", (socket) => {
