@@ -523,22 +523,23 @@ async function approve(tokenContract, socketId, amountToBuy, decimals, gasLimit,
     }
   );
   
-  console.log('tx', tx);
-
-  if(tx) {
-    io.to(socketId).emit(
-      "logs",
-      `TOKEN APPROVED WITH SUCCESS!
-    ~~~~~~~~~~~~~~~~~~
-`
-    );
-  } else {
-    io.to(socketId).emit(
-      "logs",
-      `APPROVE ERROR!
-    ~~~~~~~~~~~~~~~~~~
-`);
-  }
+  tx.wait()
+    .then((resp) => {
+      io.to(socketId).emit(
+        "logs",
+        `TOKEN APPROVED WITH SUCCESS!
+      ~~~~~~~~~~~~~~~~~~
+  `
+      );
+    })
+    .catch((resp) => {
+      io.to(socketId).emit(
+        "logs",
+        `APPROVE ERROR!
+      ~~~~~~~~~~~~~~~~~~
+  `
+      );
+    });
 }
 
 /* START SERVER */
