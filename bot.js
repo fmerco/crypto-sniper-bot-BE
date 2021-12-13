@@ -301,7 +301,16 @@ app.post("/fast-sell", (req, res) => {
     account
   );
 
-  tokenContract.approve(
+  io.to(body.socketId).emit(
+    "logs",
+    `
+~~~~~~~~~~~~~~~~~~
+APPROVE TOKEN
+~~~~~~~~~~~~~~~~~~
+`
+  );
+
+  const tx = await tokenContract.approve(
     CONSTANTS.ROUTER_ADDRESS,
     `${body.amountToBuy * 10 ** body.decimals}`,
     {
@@ -311,28 +320,33 @@ app.post("/fast-sell", (req, res) => {
     }
   );
 
-  io.to(body.socketId).emit(
-    "logs",
-    `
-~~~~~~~~~~~~~~~~~~
-FAST SELL START
-~~~~~~~~~~~~~~~~~~
-`
-  );
-
-  swapExactTokensForETH(
-    body.socketId,
-    factory,
-    router,
-    body.amountToBuy,
-    body.amountOutMin,
-    body.token,
-    CONSTANTS.BNB_ADDRESS,
-    wallet.address,
-    body.gasLimit,
-    body.gasPrice,
-    body.decimals
-  );
+  tx.wait().then((resp) => {
+    io.to(body.socketId).emit(
+      "logs",`~~~~~~~~~~~~~~~~~~
+      FAST SELL START
+      ~~~~~~~~~~~~~~~~~~`
+    );
+    swapExactTokensForETH(
+      body.socketId,
+      factory,
+      router,
+      body.amountToBuy,
+      body.amountOutMin,
+      body.token,
+      CONSTANTS.BNB_ADDRESS,
+      wallet.address,
+      body.gasLimit,
+      body.gasPrice,
+      body.decimals
+    );
+  }).catch((resp) => {
+    io.to(body.socketId).emit(
+      "logs",
+      `APPROVE ERROR!
+      ~~~~~~~~~~~~~~~~~~
+  `
+  })
+ 
 
   res.send({ res: "BOT STARTED" });
 });
