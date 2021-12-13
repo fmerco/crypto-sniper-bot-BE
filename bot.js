@@ -24,15 +24,19 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 const ActiveFactoryMap = new Map();
+const usersOnline = 0;
 
 /* SOCKET.IO CONNECTION */
 io.on("connection", (socket) => {
   socket.emit("socketId", socket.id);
+  socket.emit("usersOnline", ++usersOnline);
+
   console.log("connected", socket.id);
 
   socket.on("disconnect", (data) => {
     console.log("disconnected", socket.id);
     ActiveFactoryMap.get(socket.id)?.removeAllListeners();
+    socket.emit("usersOnline", --usersOnline);
   });
 });
 
